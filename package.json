@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "prestart": "web-ext lint --source-dir ./extension_dist ",
+    "start": "web-ext run --devtools --source-dir ./extension_dist ",
+    "mac:ff": "npm run start -- --firefox=/Applications/Firefox.app/Contents/MacOS/firefox",
+    "mac:ff-dev": "npm run start -- --firefox=/Applications/Firefox\\ Developer\\ Edition.app/Contents/MacOS/firefox",
+    "win:ff": "npm run start -- --firefox=%localappdata%\\Mozilla Firefox\\firefox",
+    "win:ff-dev": "npm run start -- --firefox=\"%programfiles%\\Firefox Developer Edition\\firefox.exe\"",
+    "prerelease": "node prerelease.js",
+    "build": "npm run prestart && web-ext build --overwrite-dest --source-dir ./extension_dist ",
+    "release": "npm version ${VER:-patch} && npm run prerelease && npm run build"
+  },
+  "devDependencies": {
+    "replace-json-property": "^1.9.0",
+    "semver": "^7.6.0",
+    "web-ext": "^7.11.0"
+  },
+  "version": "2.0.0"
+}
