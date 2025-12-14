@@ -8,7 +8,8 @@
     "win:ff-dev": "npm run start -- --firefox=\"%programfiles%\\Firefox Developer Edition\\firefox.exe\"",
     "prerelease": "node prerelease.js",
     "build": "npm run prestart && web-ext build --overwrite-dest --source-dir ./extension_dist ",
-    "release": "npm version ${VER:-patch} && npm run prerelease && npm run build"
+    "bump-version": "npm version ${VER:-patch}",
+    "release": "npm run prerelease && npm run build"
   },
   "devDependencies": {
     "replace-json-property": "^1.9.0",
