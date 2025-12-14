@@ -24,21 +24,16 @@ window.onload = (() => {
     let asyncCallCount = 0;
 
     function init() {
-
         let rootElement = $('#tp-bought-root')
         if (rootElement.length) {
-
             layoutButtonRow = rootElement.children().eq(5)
-
             initMenuButton(layoutButtonRow.children().eq(0))
         }
-
-
     }
 
     function initMenuButton(parent) {
 
-        if (btnShowData == undefined) {
+        if (btnShowData === undefined) {
             btnShowData = $('<div></div>')
             btnShowData.attr("id", btnShowDataPageId);
             btnShowData.text("Show Data")
@@ -48,7 +43,7 @@ window.onload = (() => {
             btnShowData?.on("click", showData)
         }
 
-        if (btnAddAllData == undefined) {
+        if (btnAddAllData === undefined) {
             btnAddAllData = $('<div></div>')
             btnAddAllData.attr("id", btnIdAddAllData);
             btnAddAllData.text("Add All Data in Page")
@@ -58,7 +53,7 @@ window.onload = (() => {
             btnAddAllData?.on("click", getOrderDetail)
         }
 
-        if (btnAddSelectedData == undefined) {
+        if (btnAddSelectedData === undefined) {
             btnAddSelectedData = $('<div></div>')
             btnAddSelectedData.attr("id", btnIdAddSelectedData);
             btnAddSelectedData.text("Add Selected Data")
@@ -85,8 +80,7 @@ window.onload = (() => {
             let tempExtensionFlag = $('[class^="index-mod__order-container"]').first().attr(dom_extensionFlag);
 
             // console.log(tempExtensionFlag, observerCount);
-            if (tempExtensionFlag == undefined) // true
-            {
+            if (tempExtensionFlag === undefined) {
                 console.log("refresh parsing");
                 processPage();
             }
@@ -141,11 +135,8 @@ window.onload = (() => {
     }
 
     function processPage() {
-
-
         if ($("#list-bought-items").length) {
             // console.log("in the right place");
-
             console.log("total item count ", $('[class^="index-mod__order-container"]').length);
             asyncCallCountExpected = $('[class^="index-mod__order-container"]').length;
 
@@ -163,14 +154,12 @@ window.onload = (() => {
         console.log("process page")
 
         let checkOnlyFlag = checkedOnly
-        if (event?.data?.checkedOnly != undefined) {
+        if (event?.data?.checkedOnly !== undefined) {
             checkOnlyFlag = event.data.checkedOnly
         }
 
         $('[class^="index-mod__order-container"]').each(function (index) {
-
 //             console.log("process data ", index);
-
             if (index === 0) {
                 $(this).attr(dom_extensionFlag, "true");
             }
@@ -180,11 +169,11 @@ window.onload = (() => {
             let itemDate = labelRow.find("td:first-child label:first-child").text();
 
             // console.log(dateColumn);
-
             let checkBox = labelRow.find("td:first-child label:first-child span:first-child input");
 
-            // console.log("is checkbox checked: ", checkBox.is(':checked'));
-            // console.log("is checked only: ", typeof checkedOnly, checkedOnly);
+            checkBox.prop('disabled', false);   // preferred
+            // console.log("what is checkbox input ", checkBox)
+            // console.log("is checkbox checked: ", checkBox.is(':checked'), "is checkbox enabled status: ", checkBox.is(':disabled'), checkBox.prop('disabled'),  "is checked only: ", typeof checkedOnly, checkedOnly);
 
             if (checkOnlyFlag && !checkBox.is(':checked')) {
                 return true
@@ -194,24 +183,17 @@ window.onload = (() => {
             let itemRow = $(this).find('table tbody:last-child tr:first-child');
 
 //             console.log(itemRow);
-
             let itemName = itemRow.find("td:first-child a:first-child").text();
 
             // console.log(itemName);
-
             let itemPrice = itemRow.find("td:nth-child(5) div:first-child div:first-child span:last-child").text();
 
             // console.log("price ", itemPrice);
-
             let orderId = $(this).find('table tbody:first-of-type td:first-of-type span span:last-child').text();
 
-
             // console.log("orderId ", orderId);
-
-
             if (!itemRow.find("div:first-child #ext_button").length) {
                 let forButton = $(this).find('table tbody:last-child tr:first-child div:first-child');
-
                 initLabelStatus(forButton);
             }
 
@@ -219,39 +201,34 @@ window.onload = (() => {
             let extStatusButton = $(this).find('table tbody:last-child tr:first-child div:first-child #ext_status');
 
             $.ajax({
-
                 url: '/trade/json/transit_step.do?bizOrderId=' + orderId,
-
-                type: 'GET', dataType: "json", success: function (response) {
-
+                type: 'GET', dataType: "json",
+                success: function (response) {
                     // console.log("resp ", response);
-
                     if (response.expressId) {
 
                         let text = "";
-
                         let tracking_number = response.expressId;
                         let companyName = response.expressName;
-
                         // console.log(response.address[0].place);
 
                         let exportStatus = "还没签收";
 
-                        if (response.address[0].place.includes("签收")) {
+                        // if (response.address[0].place.includes("签收")) {
+                        if (findAddresses(response.address, "签收")) {
                             extStatusButton.text("已签收");
                             exportStatus = "已签收";
                             extStatusButton.addClass("green");
-                        } else if (response.address[0].place.includes("代收")) {
+                        } else if (findAddresses(response.address, "代收")) {
                             exportStatus = "已代收";
                             extStatusButton.text("已代收");
                             extStatusButton.addClass("green");
-                        } else if (response.address[0].place.includes("Delivered, Received by Customer")) {
+                        } else if (findAddresses(response.address, "Delivered, Received by Customer")) {
                             exportStatus = "Received";
                             extStatusButton.text("Received");
                             extStatusButton.addClass("green");
-
                         } else {
-                            extStatusButton.text("Unknown");
+                            extStatusButton.text("还没签收");
                             extStatusButton.addClass("red1");
                         }
 
@@ -262,10 +239,8 @@ window.onload = (() => {
                         exportButton.text(text);
 
                         // console.log("button text ", text);
-
 //                      let csvData = [`${itemDate},${tracking_number},${companyName.trim()},${itemName.trim()},1,1,${itemPrice},${exportStatus}`];
                         let csvData = [itemDate, tracking_number, companyName.trim(), itemName.trim(), 1, 1, itemPrice, exportStatus];
-
 
                         csvData = csvData.join(DATA_DELIMITER)
 
@@ -282,18 +257,15 @@ window.onload = (() => {
                             console.error(e);
                         });
 
-                    } else if (response.isSuccess == 'true') {
+                    } else if (response.isSuccess === 'true') {
                         exportButton.addClass("red");
-
                         exportButton.text("Order not sent");
                     } else {
                         exportButton.addClass("red");
-
                         exportButton.text("invalid order");
                     }
                 }, error: function (response) {
                     exportButton.addClass("red");
-
                     exportButton.text("incomplete info");
                 }
             })
@@ -325,10 +297,7 @@ window.onload = (() => {
 
     browser.runtime.onMessage.addListener(handleMessage)
 
-
     init()
     setupObserver()
     processPage()
-
-
 });

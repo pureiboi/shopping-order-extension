@@ -1,5 +1,4 @@
-const DATA_DELIMITER = "|"
-
+const DATA_DELIMITER = ";"
 
 /*
     action id between components
@@ -15,8 +14,8 @@ const ACTION_ID_ADD_SELECTED_DATA = "add_selected_data"
 const KEY_STORAGE_EXPORT_DATA = "export_data"
 const KEY_STORAGE_SETTING_SAVE_DATA = "option_save_data"
 
-
-const exportDataHeader = "SN|date|tracking_number|companyName|itemName|quantity|quantity|itemPrice|exportStatus|orderId";
+const exportDataHeaderArray = ["SN", "date", "tracking_number", "companyName", "itemName", "quantity", "quantity", "itemPrice", "exportStatus", "orderId"];
+const exportDataHeader = exportDataHeaderArray.join(DATA_DELIMITER);
 const dom_extensionFlag = "data-extension";
 
 let popupWin = undefined
@@ -26,23 +25,41 @@ async function showData() {
     let exportDataFromStore = "";
     await browser.storage.local.get(KEY_STORAGE_EXPORT_DATA).then(
         resp => {
-            // console.log("data return from store");
+            console.log("data return from store");
             exportDataFromStore = resp[KEY_STORAGE_EXPORT_DATA];
         }
     );
 
-    let contentBody = "";
+    let contentBody = "No Data";
+    let summaryData = "No Data";
+    let summaryDataObject = {};
 
-    if (exportDataFromStore == undefined || exportDataFromStore?.length == 0) {
-        contentBody = "No Data";
-        console.log("no data");
-    } else {
 
+    if (Object.keys(exportDataFromStore).length > 0) {
+        contentBody = ""
+        summaryData = ""
+        console.log("export data size", Object.keys(exportDataFromStore).length)
         contentBody += `${exportDataHeader} <br />`
         Object.entries(exportDataFromStore).forEach(([orderId, element], index) => {
-            contentBody += [index + 1, element, orderId].join(DATA_DELIMITER)
+
+            let dataLine = [index + 1, element, orderId].join(DATA_DELIMITER)
+            contentBody += dataLine
             contentBody += "<br />"
+
+            let dataArray = dataLine.split(DATA_DELIMITER)
+
+            let dataObj = dataToObject(exportDataHeaderArray, dataArray)
+            let objectKey = dataObj["exportStatus"]
+
+            if (!summaryDataObject.hasOwnProperty(objectKey)) {
+                summaryDataObject[objectKey] = 0
+            }
+            summaryDataObject[objectKey] += 1
         });
+
+        Object.entries(summaryDataObject).forEach(([key, val])=> {
+            summaryData += `${key} : ${val} <br/>`
+        })
     }
 
     const winHtml = `<!DOCTYPE html>
@@ -52,7 +69,15 @@ async function showData() {
                  <meta charset="UTF-8">
             </head>
             <body>
-                <h1>pipe [ ${DATA_DELIMITER} ] delimited</h1>
+                <h1>CSV [ ${DATA_DELIMITER} ] delimited</h1>
+                <h2>Summary</h2>
+                
+                <div>
+                   ${summaryData}
+                </div>
+                
+                <h2>Content</h2>
+                
                 <div>
                 ${contentBody}
                 </div>
@@ -64,12 +89,4 @@ async function showData() {
     );
 
     popupWin = window.open(winUrl, "_blank");
-//    console.log("popup win ", popupWin, typeof popupWin)
-//
-//    if (popupWin != undefined && !Components.utils.isDeadWrapper(window)) {
-//        popupWin.location.href = winUrl;
-//    } else {
-//        popupWin = window.open(winUrl, "_blank");
-//    }
-
 }
